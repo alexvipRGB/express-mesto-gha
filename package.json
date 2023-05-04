@@ -1,6 +1,6 @@
 {
   "name": "express-mesto-gha",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "app.js",
   "description": "[![Tests](../../actions/workflows/tests-13-sprint.yml/badge.svg)](../../actions/workflows/tests-13-sprint.yml) [![Tests](../../actions/workflows/tests-14-sprint.yml/badge.svg)](../../actions/workflows/tests-14-sprint.yml) # Проект Mesto фронтенд + бэкенд",
   "scripts": {
