@@ -1,4 +1,4 @@
-function showValidationErrors(err, res) {
+function validationErrors(err, res) {
   const errors = { message: '' };
 
   Object.keys(err.errors).forEach((key) => {
@@ -8,4 +8,4 @@ function showValidationErrors(err, res) {
   res.status(400).send(errors);
 }
 
-module.exports = { showValidationErrors };
+module.exports = { validationErrors };

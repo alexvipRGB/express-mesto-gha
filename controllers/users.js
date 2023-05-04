@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const { showValidationErrors } = require('../utils/validError');
+const { validationErrors } = require('../utils/validError');
 
 const getUsers = async (req, res) => {
   try {
@@ -38,7 +38,7 @@ const createUser = async (req, res) => {
     res.status(201).send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      showValidationErrors(err, res);
+      validationErrors(err, res);
     } else {
       res.status(500).send({ message: 'Произошла ошибка на сервере' });
     }
@@ -64,7 +64,7 @@ const updateUser = async (req, res) => {
     }
   } catch (err) {
     if (err.name === 'ValidationError') {
-      showValidationErrors(err, res);
+      validationErrors(err, res);
     } else if (err.name === 'CastError') {
       res.status(404).send({ message: 'Пользователь не найден' });
     } else {
@@ -92,7 +92,7 @@ const updateUserAvatar = async (req, res) => {
     }
   } catch (err) {
     if (err.name === 'ValidationError') {
-      showValidationErrors(err, res);
+      validationErrors(err, res);
     } else {
       res.status(500).send({ message: 'Произошла ошибка на сервере' });
     }

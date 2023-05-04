@@ -1,5 +1,5 @@
 const Card = require('../models/card');
-const { showValidationErrors } = require('../utils/validError');
+const { validationErrors } = require('../utils/validError');
 
 const getCards = async (req, res) => {
   try {
@@ -22,7 +22,7 @@ const createCard = async (req, res) => {
     res.status(201).send(card);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      showValidationErrors(err, res);
+      validationErrors(err, res);
     } else {
       res.status(500).send({ message: 'Произошла ошибка на сервере' });
     }
