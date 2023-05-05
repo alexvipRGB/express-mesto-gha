@@ -66,7 +66,7 @@ const updateUser = async (req, res) => {
     if (err.name === 'ValidationError') {
       validationErrors(err, res);
     } else if (err.name === 'CastError') {
-      res.status(404).send({ message: 'Пользователь не найден' });
+      res.status(400).send({ message: 'Ошибка валидации' });
     } else {
       res.status(500).send({ message: 'Произошла ошибка на сервере' });
     }
@@ -93,6 +93,8 @@ const updateUserAvatar = async (req, res) => {
   } catch (err) {
     if (err.name === 'ValidationError') {
       validationErrors(err, res);
+    } else if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Ошибка валидации' });
     } else {
       res.status(500).send({ message: 'Произошла ошибка на сервере' });
     }
