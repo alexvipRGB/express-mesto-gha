@@ -20,9 +20,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cookieParser());
 
-app.use(validationErrors);
-
 app.use(bodyParser.json());
 app.use(router);
+
+app.use(validationErrors);
 
 app.listen(PORT);
