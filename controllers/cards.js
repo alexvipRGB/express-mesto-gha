@@ -57,6 +57,8 @@ const addLike = async (req, res) => {
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
     }
+
+    res.send(card);
   } catch (err) {
     validationErrors(res);
   }
@@ -72,6 +74,8 @@ const removeLike = async (req, res) => {
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
     }
+
+    res.send(card);
   } catch (err) {
     validationErrors(res);
   }
