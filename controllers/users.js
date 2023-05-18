@@ -1,5 +1,3 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { validationErrors } = require('../utils/validError');
 
@@ -8,7 +6,7 @@ const getUsers = async (req, res) => {
     const users = await User.find({});
     res.send(users);
   } catch (err) {
-    validationErrors(res);
+    res.status(500).send({ message: 'Произошла ошибка на сервере' });
   }
 };
 
@@ -17,39 +15,32 @@ const getUserById = async (req, res) => {
     const user = await User.findById(req.params.userId);
     if (!user) {
       res.status(404).send({ message: 'Пользователь не найден' });
+    } else {
+      res.status(200).send(user);
     }
   } catch (err) {
-    validationErrors(res);
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Переданы некорректные данные' });
+    } else {
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
+    }
   }
 };
+
 const createUser = async (req, res) => {
   try {
-    const {
-      name, about, avatar, email, password,
-    } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hashedPassword,
-    });
-    if (!user) {
-      res.status(404).send({ message: 'Пользователь не создан' });
-    } else {
-      res.status(201).send({
-        name,
-        about,
-        avatar,
-        email,
-      });
+    const { name, about, avatar } = req.body;
+    if (!name || !about || !avatar) {
+      res.status(400).send({ message: 'Переданы некорректные данные' });
+      return;
     }
+    const user = await User.create({ name, about, avatar });
+    res.status(201).send(user);
   } catch (err) {
-    if (err.code === 11000) {
-      res.status(409).send({ message: 'Email уже используется' });
+    if (err.name === 'ValidationError') {
+      validationErrors(err, res);
     } else {
-      validationErrors(res);
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
     }
   }
 };
@@ -68,16 +59,27 @@ const updateUser = async (req, res) => {
     );
     if (!user) {
       res.status(404).send({ message: 'Пользователь не найден' });
+    } else {
+      res.send(user);
     }
-    res.send(user);
   } catch (err) {
-    validationErrors(res);
+    if (err.name === 'ValidationError') {
+      validationErrors(err, res);
+    } else if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Ошибка валидации' });
+    } else {
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
+    }
   }
 };
 
 const updateUserAvatar = async (req, res) => {
   try {
     const { avatar } = req.body;
+    if (!avatar) {
+      res.status(400).send({ message: 'Переданы некорректные данные' });
+      return;
+    }
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { avatar },
@@ -85,51 +87,20 @@ const updateUserAvatar = async (req, res) => {
     );
     if (!user) {
       res.status(404).send({ message: 'Пользователь не найден' });
+    } else {
+      res.send(user);
     }
-    res.send(user);
   } catch (err) {
-    validationErrors(res);
-  }
-};
-
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user || !bcrypt.compareSync(password, user.password)) {
-      res.status(401).send({ message: 'Неправильная почта или пароль' });
-      return;
+    if (err.name === 'ValidationError') {
+      validationErrors(err, res);
+    } else if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Ошибка валидации' });
+    } else {
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
     }
-
-    const token = jwt.sign({ _id: user._id }, 'R6yUJ9OwiJ0N0ELIiEIaO3OD', {
-      expiresIn: '7d',
-    });
-
-    res.cookie('jwt', token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.send({ message: 'Успешная аутентификация' });
-  } catch (err) {
-    validationErrors(res);
-  }
-};
-
-const getCurrentUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      res.status(404).send({ message: 'Пользователь не найден' });
-    }
-
-    res.send(user);
-  } catch (err) {
-    validationErrors(res);
   }
 };
 
 module.exports = {
-  getUsers, getUserById, createUser, updateUser, updateUserAvatar, login, getCurrentUser,
+  getUsers, getUserById, createUser, updateUser, updateUserAvatar,
 };

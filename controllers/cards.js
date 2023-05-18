@@ -21,30 +21,29 @@ const createCard = async (req, res) => {
 
     res.status(201).send(card);
   } catch (err) {
-    validationErrors(res);
+    if (err.name === 'ValidationError') {
+      validationErrors(err, res);
+    } else {
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
+    }
   }
 };
 
 const deleteCard = async (req, res) => {
   try {
     const { cardId } = req.params;
-    const userId = req.user._id;
     const card = await Card.findByIdAndRemove(cardId);
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
       return;
     }
-    if (card.owner.toString() !== userId) {
-      res.status(403).send({ message: 'У вас нет прав на удаление этой карточки' });
-      return;
-    }
-
-    await Card.findByIdAndRemove(cardId);
-
-    res.send({ message: 'Карточка успешно удалена' });
-    return;
+    res.send(card);
   } catch (err) {
-    validationErrors(res);
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Переданы некорректные данные' });
+    } else {
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
+    }
   }
 };
 
@@ -57,9 +56,15 @@ const addLike = async (req, res) => {
     );
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
+    } else {
+      res.status(200).send(card);
     }
   } catch (err) {
-    validationErrors(res);
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Переданы некорректные данные' });
+    } else {
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
+    }
   }
 };
 
@@ -72,9 +77,15 @@ const removeLike = async (req, res) => {
     );
     if (!card) {
       res.status(404).send({ message: 'Карточка не найдена' });
+    } else {
+      res.status(200).send(card);
     }
   } catch (err) {
-    validationErrors(res);
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Переданы некорректные данные' });
+    } else {
+      res.status(500).send({ message: 'Произошла ошибка на сервере' });
+    }
   }
 };
 
