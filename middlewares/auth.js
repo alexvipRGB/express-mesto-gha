@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
 const authMiddleware = (req, res, next) => {
   const token = req.cookies.jwt;
 
   if (!token) {
-    return res.status(401).send({ message: 'Токен отсутствует' });
+    next(new UnauthorizedError('Необходима авторизация'));
   }
 
   try {
@@ -12,7 +13,7 @@ const authMiddleware = (req, res, next) => {
 
     next();
   } catch (err) {
-    return res.status(401).send({ message: 'Токен недействителен' });
+    next(new UnauthorizedError('Необходима авторизация'));
   }
   return null;
 };
