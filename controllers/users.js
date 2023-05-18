@@ -5,6 +5,7 @@ const validationErrors = require('../utils/validError');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
 const UnauthorizedError = require('../errors/UnauthorizedError');
+const BadRequestError = require('../errors/BadRequestError');
 
 const getUsers = async (req, res) => {
   try {
@@ -34,16 +35,29 @@ const createUser = async (req, res, next) => {
       name, about, avatar, email, password,
     } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({
+    const user = await User.create({
       name,
       about,
       avatar,
       email,
       password: hashedPassword,
     });
+    if (user) {
+      res.status(201).send({
+        name,
+        about,
+        avatar,
+        email,
+      });
+    }
   } catch (err) {
-    if (err.name === 'ValidationErrors') {
+    if (err.code === 11000) {
       next(new ConflictError('Email уже используется'));
+      if (err.name === 'ValidationErrors') {
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя.'));
+      } else {
+        next(err);
+      }
     }
   }
 };
