@@ -50,7 +50,7 @@ const createUser = async (req, res, next) => {
       });
     }
   } catch (err) {
-    if (err.name === 'ValidationError') {
+    if (err.name === 'ValidationErrors') {
       next(new ConflictError('Email уже используется'));
     } else {
       next(err);
@@ -115,7 +115,7 @@ const login = async (req, res, next) => {
 
     res.send({ message: 'Успешная аутентификация' });
   } catch (err) {
-    validationErrors(res);
+    next(new UnauthorizedError('Неправильная почта или пароль'));
   }
 };
 
