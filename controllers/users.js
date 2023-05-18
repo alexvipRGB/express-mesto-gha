@@ -4,7 +4,7 @@ const User = require('../models/user');
 const validationErrors = require('../utils/validError');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
-const UnauthorizedError = require('../errors/NotFoundError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
 const getUsers = async (req, res) => {
   try {
