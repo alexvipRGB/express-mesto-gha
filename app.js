@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const router = require('./routes/index');
+const validationErrors = require('./utils/validError');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -18,6 +19,8 @@ app.use(helmet());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cookieParser());
+
+app.use(validationErrors);
 
 app.use(bodyParser.json());
 app.use(router);

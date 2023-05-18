@@ -1,7 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { validationErrors } = require('../utils/validError');
+const validationErrors = require('../utils/validError');
+const ConflictError = require('../errors/ConflictError');
+const NotFoundError = require('../errors/NotFoundError');
+const UnauthorizedError = require('../errors/NotFoundError');
 
 const getUsers = async (req, res) => {
   try {
@@ -12,11 +15,12 @@ const getUsers = async (req, res) => {
   }
 };
 
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) {
-      res.status(404).send({ message: 'Пользователь не найден' });
+      next(new NotFoundError('Пользователь не найден'));
+      return;
     }
 
     res.send(user);
@@ -24,7 +28,7 @@ const getUserById = async (req, res) => {
     validationErrors(res);
   }
 };
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   try {
     const {
       name, about, avatar, email, password,
@@ -37,9 +41,7 @@ const createUser = async (req, res) => {
       email,
       password: hashedPassword,
     });
-    if (!user) {
-      res.status(404).send({ message: 'Пользователь не создан' });
-    } else {
+    if (user) {
       res.status(201).send({
         name,
         about,
@@ -48,15 +50,15 @@ const createUser = async (req, res) => {
       });
     }
   } catch (err) {
-    if (err.code === 11000) {
-      res.status(409).send({ message: 'Email уже используется' });
+    if (err.name === 'ValidationError') {
+      next(new ConflictError('Email уже используется'));
     } else {
-      validationErrors(res);
+      next(err);
     }
   }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
     const { name, about } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -65,7 +67,8 @@ const updateUser = async (req, res) => {
       { new: true, runValidators: true },
     );
     if (!user) {
-      res.status(404).send({ message: 'Пользователь не найден' });
+      next(new NotFoundError('Пользователь не найден'));
+      return;
     }
     res.send(user);
   } catch (err) {
@@ -73,7 +76,7 @@ const updateUser = async (req, res) => {
   }
 };
 
-const updateUserAvatar = async (req, res) => {
+const updateUserAvatar = async (req, res, next) => {
   try {
     const { avatar } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -82,7 +85,8 @@ const updateUserAvatar = async (req, res) => {
       { new: true, runValidators: true },
     );
     if (!user) {
-      res.status(404).send({ message: 'Пользователь не найден' });
+      next(new NotFoundError('Пользователь не найден'));
+      return;
     }
     res.send(user);
   } catch (err) {
@@ -90,13 +94,13 @@ const updateUserAvatar = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email }).select('+password');
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
-      res.status(401).send({ message: 'Неправильная почта или пароль' });
+      next(new UnauthorizedError('Неправильная почта или пароль'));
       return;
     }
 
@@ -115,11 +119,12 @@ const login = async (req, res) => {
   }
 };
 
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      res.status(404).send({ message: 'Пользователь не найден' });
+      next(new NotFoundError('Пользователь не найден'));
+      return;
     }
 
     res.send(user);
