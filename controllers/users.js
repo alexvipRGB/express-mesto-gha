@@ -34,26 +34,16 @@ const createUser = async (req, res, next) => {
       name, about, avatar, email, password,
     } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
+    await User.create({
       name,
       about,
       avatar,
       email,
       password: hashedPassword,
     });
-    if (user) {
-      res.status(201).send({
-        name,
-        about,
-        avatar,
-        email,
-      });
-    }
   } catch (err) {
     if (err.name === 'ValidationErrors') {
       next(new ConflictError('Email уже используется'));
-    } else {
-      next(err);
     }
   }
 };
