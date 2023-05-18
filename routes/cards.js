@@ -14,9 +14,9 @@ router.delete('/cards/:cardId', auth, celebrate(cardValidationId), deleteCard);
 router.put('/cards/:cardId/likes', auth, celebrate(cardValidationId), addLike);
 router.delete(
   '/cards/:cardId/likes',
-  removeLike,
   auth,
   celebrate(cardValidationId),
+  removeLike,
 );
 
 router.use(errors());
