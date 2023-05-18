@@ -115,7 +115,11 @@ const login = async (req, res, next) => {
 
     res.send({ message: 'Успешная аутентификация' });
   } catch (err) {
-    next(new UnauthorizedError('Неправильная почта или пароль'));
+    if (err.name === 'ValidationErrors') {
+      next(new UnauthorizedError('Неправильная почта или пароль'));
+    } else {
+      next(err);
+    }
   }
 };
 
