@@ -1,15 +1,13 @@
 const Card = require('../models/card');
-const validationErrors = require('../utils/validError');
 const NotFoundError = require('../errors/NotFoundError');
-const BadRequestError = require('../errors/BadRequestError');
 const ForbiddenError = require('../errors/ForbiddenError');
 
-const getCards = async (req, res) => {
+const getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     res.send(cards);
   } catch (err) {
-    validationErrors(res);
+    next(err);
   }
 };
 
@@ -18,16 +16,12 @@ const createCard = async (req, res, next) => {
     const { name, link } = req.body;
     const card = await Card.create({ name, link, owner: req.user._id });
     if (!card) {
-      next(new NotFoundError('Карточка не найдена'));
+      throw new NotFoundError('Карточка не создана');
     } else {
       res.status(201).send(card);
     }
   } catch (err) {
-    if (err.name === 'ValidationErrors') {
-      next(new BadRequestError('Переданы некорректные данные при создании карточки'));
-    } else {
-      next(err);
-    }
+    next(err);
   }
 };
 
@@ -35,22 +29,22 @@ const deleteCard = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     const userId = req.user._id;
+
     const card = await Card.findByIdAndRemove(cardId);
+
     if (!card) {
-      next(new NotFoundError('Карточка не найдена'));
-      return;
-    }
-    if (card.owner.toString() !== userId) {
-      next(new ForbiddenError('У вас нет прав на удаление этой карточки'));
-      return;
+      throw new NotFoundError('Карточка не найдена');
     }
 
-    await Card.findByIdAndRemove(cardId);
+    if (card.owner.toString() !== userId) {
+      throw new ForbiddenError('У вас нет прав на удаление этой карточки');
+    }
+
+    await card.findByIdAndRemove(cardId);
 
     res.send({ message: 'Карточка успешно удалена' });
-    return;
   } catch (err) {
-    validationErrors(res);
+    next(err);
   }
 };
 
@@ -62,13 +56,12 @@ const addLike = async (req, res, next) => {
       { new: true },
     );
     if (!card) {
-      next(new NotFoundError('Карточка не найдена'));
-      return;
+      throw new NotFoundError('Карточка не найдена');
     }
 
     res.send(card);
   } catch (err) {
-    validationErrors(res);
+    next(err);
   }
 };
 
@@ -80,13 +73,12 @@ const removeLike = async (req, res, next) => {
       { new: true },
     );
     if (!card) {
-      next(new NotFoundError('Карточка не найдена'));
-      return;
+      throw new NotFoundError('Карточка не найдена');
     }
 
     res.send(card);
   } catch (err) {
-    validationErrors(res);
+    next(err);
   }
 };
 
